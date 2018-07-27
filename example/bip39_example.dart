@@ -1,4 +1,4 @@
-import 'package:bip39_dart/bip39_dart.dart';
+import 'package:bip39/bip39.dart';
 
 main() {
   var awesome = new Awesome();

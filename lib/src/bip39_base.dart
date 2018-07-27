@@ -1,5 +1,3 @@
-// TODO: Put public facing types in this file.
-
 enum Wordlist {
   CHINESE_SIMPLIFIED,
   CHINESE_TRADITIONAL,
