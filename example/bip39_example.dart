@@ -1,7 +1,7 @@
-import 'package:bip39/bip39.dart';
+import 'package:bip39/bip39.dart' as bip39;
 
-main() {
+main() async {
 
-  var awesome = new Awesome();
-  print('awesome: ${awesome.isAwesome}');
+  final mnemonic = await bip39.generateMnemonic();
+  print('mnemonic code: ${mnemonic}');
 }
