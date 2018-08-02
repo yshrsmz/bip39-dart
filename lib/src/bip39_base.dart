@@ -1,12 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:crypto/crypto.dart';
-import 'package:resource/resource.dart';
-import 'dart:convert';
-import 'dart:async';
 
-//import 'package:pointycastle/random/auto_seed_block_ctr_random.dart';
-//import 'package:pointycastle/block/modes/ctr.dart';
+import 'package:bip39/src/sha512.dart';
+import 'package:crypto/crypto.dart';
+import 'package:password_hash/pbkdf2.dart';
+import 'package:resource/resource.dart';
 
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 // https://github.com/bitcoin/bips/tree/master/bip-0039
@@ -70,12 +70,28 @@ String _bytesToBinary(Uint8List bytes) {
   return bytes.map((byte) => byte.toRadixString(2).padLeft(8, '0')).join('');
 }
 
-String deriveChecksumBits(Uint8List entropy) {
+String _salt(String password) {
+  return 'mnemonic${password ?? ""}';
+}
+
+String _deriveChecksumBits(Uint8List entropy) {
   final ENT = entropy.length * 8;
   final CS = ENT ~/ 32;
 
-  final hash = sha256.convert(entropy);
+  final hash = sha256.newInstance().convert(entropy);
   return _bytesToBinary(Uint8List.fromList(hash.bytes)).substring(0, CS);
+}
+
+Uint8List mnemonicToSeed(String mnemonic, {String password = ""}) {
+  final salt = _salt(password);
+  return PBKDF2(hashAlgorithm: sha512.newInstance())
+      .generateKey(mnemonic, salt, 2048, 64);
+}
+
+String mnemonicToSeedHex(String mnemonic, {String password = ""}) {
+  return mnemonicToSeed(mnemonic, password: password).map((byte) {
+    return byte.toRadixString(16).padLeft(2, '0');
+  }).join('');
 }
 
 // ByteData mnemonicToEntropy(String mnemonic, Wordlist wordlist) {}
@@ -92,7 +108,7 @@ Future<String> entropyToMnemonic(Uint8List entropy, Wordlist wordlist) async {
   }
 
   final entroypyBits = _bytesToBinary(entropy);
-  final checksumBits = deriveChecksumBits(entropy);
+  final checksumBits = _deriveChecksumBits(entropy);
 
   final bits = entroypyBits + checksumBits;
 

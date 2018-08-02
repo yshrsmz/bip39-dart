@@ -12,24 +12,25 @@ void main() {
   group('A group of tests', () {
     setUp(() async {});
 
-    // testVector('English', bip39.Wordlist.ENGLISH, '', vectors['english'][0], 0);
-    int i = 0;
-    (vectors['english'] as List<dynamic>).forEach((list) {
-      testVector('English', bip39.Wordlist.ENGLISH, '', list, i);
-      i++;
-    });
-
-    i = 0;
-    (vectors['japanese'] as List<dynamic>).forEach((list) {
-      testVector('Japanese', bip39.Wordlist.JAPANESE, '', list, i);
-      i++;
-    });
-
-    // test('First Test', () async {
-    //   // await bip39.entropyToMnemonic(entropy, wordlist)
-    //   final mnemonic = await bip39.generateMnemonic();
-    //   print("mnemonic: $mnemonic");
+    testVector('English', bip39.Wordlist.ENGLISH, 'TREZOR', vectors['english'][0], 0);
+    // int i = 0;
+    // (vectors['english'] as List<dynamic>).forEach((list) {
+    //   testVector('English', bip39.Wordlist.ENGLISH, 'REZOR', list, i);
+    //   i++;
     // });
+
+    // i = 0;
+    // (vectors['japanese'] as List<dynamic>).forEach((list) {
+    //   testVector('Japanese', bip39.Wordlist.JAPANESE, '㍍ガバヴァぱばぐゞちぢ十人十色', list, i);
+    //   i++;
+    // });
+
+    test('First Test', () async {
+      final seed = bip39.mnemonicToSeed('now rain visual control aunt artefact error weekend solution flavor amazing ski', password: 'TREZOR');
+      final hex = bip39.mnemonicToSeedHex('now rain visual control aunt artefact error weekend solution flavor amazing ski', password: 'TREZOR');
+      print('seed: ${seed}, length: ${seed.length}');
+      print('seedHex: ${hex}, length: ${hex.length}');
+    });
   });
 }
 
@@ -46,10 +47,11 @@ void testVector(String description, bip39.Wordlist wordlist, String password,
         .map((s) => int.parse(s.group(0), radix: 16))
         .toList(growable: false));
 
-    print('entropy: $entropy');
-
     final code = await bip39.entropyToMnemonic(entropy, wordlist);
     expect(code, equals(vmnemonic));
+
+    final seedHex = bip39.mnemonicToSeedHex(vmnemonic, password: password);
+    expect(seedHex, equals(vseedHex));
 
     // print('code: $code');
   });
