@@ -11,6 +11,8 @@ abstract class Hash64Sink implements Sink<List<int>> {
   /// The inner sink that this should forward to.
   final Sink<Digest> _sink;
 
+  final int _chunkSizeInWords;
+
   /// Whether the hash function operates on big-endian words.
   final Endian _endian;
 
@@ -18,7 +20,7 @@ abstract class Hash64Sink implements Sink<List<int>> {
   ///
   /// This is an instance variable to avoid re-allocating, but its data isn't
   /// used across invocations of [_iterate].
-  final Uint64List _currentChunk;
+  final List<BigInt> _currentChunk;
 
   /// Messages with more than 2^53-1 bits are not supported. (This is the
   /// largest value that is representable on both JS and the Dart VM.)
@@ -37,22 +39,23 @@ abstract class Hash64Sink implements Sink<List<int>> {
   /// The words in the current digest.
   ///
   /// This should be updated each time [updateHash] is called.
-  Uint64List get digest;
+  List<BigInt> get digest;
 
   /// Creates a new hash.
   ///
   /// [chunkSizeInWords] represents the size of the input chunks processed by
   /// the algorithm, in terms of 64-bit words.
-  Hash64Sink(this._sink, int chunkSizeInWords, {Endian endian = Endian.big})
+  Hash64Sink(this._sink, int this._chunkSizeInWords,
+      {Endian endian = Endian.big})
       : _endian = endian,
-        _currentChunk = Uint64List(chunkSizeInWords);
+        _currentChunk = List(_chunkSizeInWords);
 
   /// Runs a single iteration of the hash computation, updating [digest] with
   /// the result.
   ///
   /// [chunk] is the current chunk, whose size is given by the
   /// `chunkSizeInWords` parameter passed to the constructor.
-  void updateHash(Uint64List chunk);
+  void updateHash(List<BigInt> chunk);
 
   @override
   void add(List<int> data) {
@@ -88,13 +91,15 @@ abstract class Hash64Sink implements Sink<List<int>> {
   /// Iterates through [_pendingData], updating the hash computation for each
   /// chunk.
   void _iterate() {
+    var len = _pendingData.length;
+    var chunkSizeInBytes = _chunkSizeInWords * _bytesPerWord64;
     var pendingDataBytes = _pendingData.buffer.asByteData();
-    var pendingDataChunks = _pendingData.length ~/ _currentChunk.lengthInBytes;
+    var pendingDataChunks = _pendingData.length ~/ chunkSizeInBytes;
     for (var i = 0; i < pendingDataChunks; i++) {
       // Copy words from the pending data buffer into the current chunk buffer.
       for (var j = 0; j < _currentChunk.length; j++) {
-        _currentChunk[j] = pendingDataBytes.getUint64(
-            i * _currentChunk.lengthInBytes + j * _bytesPerWord64, _endian);
+        _currentChunk[j] = BigInt.from(pendingDataBytes.getUint64(
+            i * chunkSizeInBytes + j * _bytesPerWord64, _endian));
       }
 
       // Run the hash function on the current chunk.

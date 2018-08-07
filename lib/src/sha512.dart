@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:bip39/src/hash_64_sink.dart';
 import 'package:crypto/crypto.dart';
@@ -68,25 +67,25 @@ const List<int> _noise = const [
 
 class _Sha512Sink extends Hash64Sink {
   @override
-  final digest = new Uint64List(8);
+  final digest = new List(8);
 
-  final Uint64List _extended;
+  final List<BigInt> _extended;
 
   _Sha512Sink(Sink<Digest> sink)
-      : _extended = new Uint64List(128),
+      : _extended = new List(128),
         super(sink, 16) {
-    digest[0] = 0x6a09e667f3bcc908;
-    digest[1] = 0xbb67ae8584caa73b;
-    digest[2] = 0x3c6ef372fe94f82b;
-    digest[3] = 0xa54ff53a5f1d36f1;
-    digest[4] = 0x510e527fade682d1;
-    digest[5] = 0x9b05688c2b3e6c1f;
-    digest[6] = 0x1f83d9abfb41bd6b;
-    digest[7] = 0x5be0cd19137e2179;
+    digest[0] = BigInt.from(0x6a09e667f3bcc908);
+    digest[1] = BigInt.from(0xbb67ae8584caa73b);
+    digest[2] = BigInt.from(0x3c6ef372fe94f82b);
+    digest[3] = BigInt.from(0xa54ff53a5f1d36f1);
+    digest[4] = BigInt.from(0x510e527fade682d1);
+    digest[5] = BigInt.from(0x9b05688c2b3e6c1f);
+    digest[6] = BigInt.from(0x1f83d9abfb41bd6b);
+    digest[7] = BigInt.from(0x5be0cd19137e2179);
   }
 
   // Helper functions as defined in http://tools.ietf.org/html/rfc6234
-  _rotr64(n, x) => (x >> n) | ((x << (64 - n)) & _mask64);
+  _rotr64(int n, BigInt x) => (x >> n) | ((x << (64 - n)) & _mask64);
 
   _ch(x, y, z) => (x & y) ^ ((~x & _mask64) & z);
 
@@ -101,7 +100,7 @@ class _Sha512Sink extends Hash64Sink {
   _ssig1(x) => _rotr64(19, x) ^ _rotr64(61, x) ^ (x >> 6);
 
   @override
-  void updateHash(Uint64List chunk) {
+  void updateHash(List<BigInt> chunk) {
     assert(chunk.length == 16);
 
     for (var i = 0; i < 16; i++) {
