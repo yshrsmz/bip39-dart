@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:bip39/src/sha512.dart';
 import 'package:crypto/crypto.dart';
 import 'package:password_hash/pbkdf2.dart';
 import 'package:resource/resource.dart';
@@ -84,7 +83,7 @@ String _deriveChecksumBits(Uint8List entropy) {
 
 Uint8List mnemonicToSeed(String mnemonic, {String password = ""}) {
   final salt = _salt(password);
-  return PBKDF2(hashAlgorithm: sha512.newInstance())
+  return PBKDF2(hashAlgorithm: sha256.newInstance())
       .generateKey(mnemonic, salt, 2048, 64);
 }
 
