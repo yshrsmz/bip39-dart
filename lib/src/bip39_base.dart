@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:password_hash/pbkdf2.dart';
+import 'package:pointycastle/pointycastle.dart';
 import 'package:resource/resource.dart';
 
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
@@ -83,8 +83,9 @@ String _deriveChecksumBits(Uint8List entropy) {
 
 Uint8List mnemonicToSeed(String mnemonic, {String password = ""}) {
   final salt = _salt(password);
-  return PBKDF2(hashAlgorithm: sha256.newInstance())
-      .generateKey(mnemonic, salt, 2048, 64);
+  final pbkdf2 = KeyDerivator.registry.create('SHA-512/HMAC/PBKDF2');
+  pbkdf2.init(Pbkdf2Parameters(utf8.encode(salt), 2048, 64));
+  return pbkdf2.process(utf8.encode(mnemonic));
 }
 
 String mnemonicToSeedHex(String mnemonic, {String password = ""}) {

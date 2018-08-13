@@ -10,7 +10,6 @@ environment:
 dependencies:
   crypto: ^2.0.6
   resource: ^2.1.5
-  password_hash: ^2.0.0-beta
   pointycastle:
     git:
       url: git://github.com/yshrsmz/pointycastle.git
