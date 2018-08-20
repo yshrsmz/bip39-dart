@@ -86,7 +86,7 @@ String _deriveChecksumBits(Uint8List entropy) {
   return _bytesToBinary(Uint8List.fromList(hash.bytes)).substring(0, CS);
 }
 
-Uint8List mnemonicToSeed(String mnemonic, {String password = ""}) {
+Uint8List mnemonicToSeed(String mnemonic, [String password = ""]) {
   final mnemonicBuffer = utf8.encode(nfkd(mnemonic));
   final saltBuffer = utf8.encode(_salt(nfkd(password)));
   final pbkdf2 = KeyDerivator('SHA-512/HMAC/PBKDF2');
@@ -95,10 +95,58 @@ Uint8List mnemonicToSeed(String mnemonic, {String password = ""}) {
   return pbkdf2.process(mnemonicBuffer);
 }
 
-String mnemonicToSeedHex(String mnemonic, {String password = ""}) {
-  return mnemonicToSeed(mnemonic, password: password).map((byte) {
+String mnemonicToSeedHex(String mnemonic, [String password = ""]) {
+  return mnemonicToSeed(mnemonic, password).map((byte) {
     return byte.toRadixString(16).padLeft(2, '0');
   }).join('');
+}
+
+Future<Uint8List> mnemonicToEntropy(String mnemonic,
+    [Wordlist wordlist = _DEFAULT_WORDLIST]) async {
+  final wordRes = await _loadWordlist(wordlist);
+  final words = nfkd(mnemonic).split(' ');
+
+  if (words.length % 3 != 0) {
+    throw new ArgumentError(_INVALID_MNEMONIC);
+  }
+
+  // convert word indices to 11bit binary strings
+  final bits = words.map((word) {
+    final index = wordRes.indexOf(word);
+    if (index == -1) {
+      throw ArgumentError(_INVALID_MNEMONIC);
+    }
+
+    return index.toRadixString(2).padLeft(11, '0');
+  }).join('');
+
+  // split the binary string into ENT/CS
+  final dividerIndex = (bits.length / 33).floor() * 32;
+  final entropyBits = bits.substring(0, dividerIndex);
+  final checksumBits = bits.substring(dividerIndex);
+
+  final regex = RegExp(r".{1,8}");
+
+  final entropyBytes = Uint8List.fromList(regex
+      .allMatches(entropyBits)
+      .map((match) => _binaryToByte(match.group(0)))
+      .toList(growable: false));
+  if (entropyBytes.length < 16) {
+    throw AssertionError(_INVALID_ENTROPY);
+  }
+  if (entropyBytes.length > 32) {
+    throw AssertionError(_INVALID_ENTROPY);
+  }
+  if (entropyBytes.length % 4 != 0) {
+    throw AssertionError(_INVALID_ENTROPY);
+  }
+
+  final newCheckSum = _deriveChecksumBits(entropyBytes);
+  if (newCheckSum != checksumBits) {
+    throw AssertionError(_INVALID_CHECKSUM);
+  }
+
+  return entropyBytes;
 }
 
 // ByteData mnemonicToEntropy(String mnemonic, Wordlist wordlist) {}

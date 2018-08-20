@@ -30,23 +30,25 @@ void testVector(String description, bip39.Wordlist wordlist, String password,
   final vseedHex = v[2];
 
   group('for ${description}(${i}), ${ventropy}', () {
-    var entropy;
-    setUp(() {
-      final regex =
-          new RegExp(r".{1,2}", caseSensitive: false, multiLine: false);
-      entropy = Uint8List.fromList(regex
-          .allMatches(ventropy)
-          .map((s) => int.parse(s.group(0), radix: 16))
-          .toList(growable: false));
+    setUp(() {});
+
+    test('mnemoic to entropy', () async {
+      final Uint8List entropy =
+          await bip39.mnemonicToEntropy(vmnemonic, wordlist);
+      expect(entropy, equals(convertEntropy(ventropy)));
     });
 
     test('entropy to mnemonic', () async {
+      final regex =
+          new RegExp(r".{1,2}", caseSensitive: false, multiLine: false);
+      final entropy = convertEntropy(ventropy);
+
       final code = await bip39.entropyToMnemonic(entropy, wordlist);
       expect(code, equals(vmnemonic));
     });
 
     test('mnemonic to seed hex', () async {
-      final seedHex = bip39.mnemonicToSeedHex(vmnemonic, password: password);
+      final seedHex = bip39.mnemonicToSeedHex(vmnemonic, password);
       expect(seedHex, equals(vseedHex));
     });
   });
@@ -60,4 +62,12 @@ List<String> loadWordlist(String name) {
       .map((s) => s.trim())
       .where((s) => s.isNotEmpty)
       .toList(growable: false);
+}
+
+Uint8List convertEntropy(String entropy) {
+  final regex = new RegExp(r".{1,2}", caseSensitive: false, multiLine: false);
+  return Uint8List.fromList(regex
+      .allMatches(entropy)
+      .map((s) => int.parse(s.group(0), radix: 16))
+      .toList(growable: false));
 }
