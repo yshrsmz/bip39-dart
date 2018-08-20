@@ -59,6 +59,11 @@ void testVector(String description, bip39.Wordlist wordlist, String password,
       expect(code, equals(vmnemonic),
           reason: 'generateMnemonic returns nextBytes entropy unmodified');
     });
+
+    test('validate mnemonic', () async {
+      expect(await bip39.validateMnemonic(vmnemonic, wordlist), isTrue,
+          reason: 'validateMnemonic returns true');
+    });
   });
 }
 

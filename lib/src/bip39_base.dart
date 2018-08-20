@@ -192,7 +192,14 @@ Future<String> generateMnemonic({
   return await entropyToMnemonic(entropy, wordlist);
 }
 
-// bool validateMnemonic(String mnemonic, Wordlist wordlist) {}
+Future<bool> validateMnemonic(String mnemonic, Wordlist wordlist) async {
+  try {
+    await mnemonicToEntropy(mnemonic, wordlist);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
 
 Future<List<String>> _loadWordlist(Wordlist wordlist) async {
   final res =
