@@ -23,6 +23,8 @@ enum Wordlist {
   SPANISH,
 }
 
+final _wordlistCache = Map<Wordlist, List<dynamic>>();
+
 const Wordlist _DEFAULT_WORDLIST = Wordlist.ENGLISH;
 
 const int _SIZE_8BITS = 255;
@@ -202,12 +204,18 @@ Future<bool> validateMnemonic(String mnemonic, Wordlist wordlist) async {
 }
 
 Future<List<String>> _loadWordlist(Wordlist wordlist) async {
-  final res =
-      Resource('package:bip39/src/wordlists/${_getWordlistName(wordlist)}.txt');
-  final rawWords = await res.readAsString(encoding: utf8);
-  return rawWords
-      .split('\n')
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .toList(growable: false);
+  if (_wordlistCache.containsKey(wordlist)) {
+    return _wordlistCache[wordlist];
+  } else {
+    final res = Resource(
+        'package:bip39/src/wordlists/${_getWordlistName(wordlist)}.txt');
+    final rawWords = await res.readAsString(encoding: utf8);
+    final result = rawWords
+        .split('\n')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList(growable: false);
+    _wordlistCache[wordlist] = result;
+    return result;
+  }
 }
