@@ -53,15 +53,6 @@ String _getWordlistName(Wordlist wordlist) {
   }
 }
 
-Uint8List _nextBytes(int size) {
-  final rnd = Random.secure();
-  final bytes = Uint8List(size);
-  for (var i = 0; i < size; i++) {
-    bytes[i] = rnd.nextInt(_SIZE_8BITS);
-  }
-  return bytes;
-}
-
 int _binaryToByte(String binary) {
   return int.parse(binary, radix: 2);
 }
@@ -84,6 +75,17 @@ String _deriveChecksumBits(Uint8List entropy) {
 
   final hash = sha256.newInstance().convert(entropy);
   return _bytesToBinary(Uint8List.fromList(hash.bytes)).substring(0, CS);
+}
+
+typedef Uint8List RandomBytes(int size);
+
+Uint8List _nextBytes(int size) {
+  final rnd = Random.secure();
+  final bytes = Uint8List(size);
+  for (var i = 0; i < size; i++) {
+    bytes[i] = rnd.nextInt(_SIZE_8BITS);
+  }
+  return bytes;
 }
 
 Uint8List mnemonicToSeed(String mnemonic, [String password = ""]) {
@@ -149,8 +151,6 @@ Future<Uint8List> mnemonicToEntropy(String mnemonic,
   return entropyBytes;
 }
 
-// ByteData mnemonicToEntropy(String mnemonic, Wordlist wordlist) {}
-
 Future<String> entropyToMnemonic(Uint8List entropy, Wordlist wordlist) async {
   if (entropy.length < 16) {
     throw ArgumentError(_INVALID_ENTROPY);
@@ -182,11 +182,12 @@ Future<String> entropyToMnemonic(Uint8List entropy, Wordlist wordlist) async {
 
 Future<String> generateMnemonic({
   int strength = 128,
+  RandomBytes randomBytes = _nextBytes,
   Wordlist wordlist = _DEFAULT_WORDLIST,
 }) async {
   assert(strength % 32 == 0);
 
-  final entropy = _nextBytes(strength ~/ 8);
+  final entropy = randomBytes(strength ~/ 8);
 
   return await entropyToMnemonic(entropy, wordlist);
 }

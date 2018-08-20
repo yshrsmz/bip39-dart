@@ -38,18 +38,26 @@ void testVector(String description, bip39.Wordlist wordlist, String password,
       expect(entropy, equals(convertEntropy(ventropy)));
     });
 
+    test('mnemonic to seed hex', () async {
+      final seedHex = bip39.mnemonicToSeedHex(vmnemonic, password);
+      expect(seedHex, equals(vseedHex));
+    });
+
     test('entropy to mnemonic', () async {
-      final regex =
-          new RegExp(r".{1,2}", caseSensitive: false, multiLine: false);
       final entropy = convertEntropy(ventropy);
 
       final code = await bip39.entropyToMnemonic(entropy, wordlist);
       expect(code, equals(vmnemonic));
     });
 
-    test('mnemonic to seed hex', () async {
-      final seedHex = bip39.mnemonicToSeedHex(vmnemonic, password);
-      expect(seedHex, equals(vseedHex));
+    test('generate mnemonic', () async {
+      bip39.RandomBytes nextBytes = (int size) {
+        return convertEntropy(ventropy);
+      };
+      final code = await bip39.generateMnemonic(
+          randomBytes: nextBytes, wordlist: wordlist);
+      expect(code, equals(vmnemonic),
+          reason: 'generateMnemonic returns nextBytes entropy unmodified');
     });
   });
 }
