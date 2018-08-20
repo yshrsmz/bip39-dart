@@ -9,9 +9,8 @@ String _bytesToHex(Uint8List bytes) {
 }
 
 main() async {
-  initCipher();
-  final sha256 = Digest.registry.create("SHA-256");
-  final sha512 = Digest.registry.create("SHA-512");
+  final sha256 = Digest("SHA-256");
+  final sha512 = Digest("SHA-512");
   final sha256result = sha256.process(utf8.encode('123'));
   final sha512result = sha512.process(utf8.encode('123'));
 //  print('sha256: ${sha256.convert(utf8.encode('123'))}');

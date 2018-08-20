@@ -3,12 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:pointycastle/pointycastle.dart';
 import 'package:test/test.dart';
 
 void main() {
-  initCipher();
-
   Map<String, dynamic> vectors =
       json.decode(File('./test/vectors.json').readAsStringSync(encoding: utf8));
 
@@ -20,7 +17,8 @@ void main() {
 
   i = 0;
   (vectors['japanese'] as List<dynamic>).forEach((list) {
-    testVector('Japanese', bip39.Wordlist.JAPANESE, '㍍ガバヴァぱばぐゞちぢ十人十色', list, i);
+    testVector(
+        'Japanese', bip39.Wordlist.JAPANESE, 'メートルガバヴァぱばぐゞちぢ十人十色', list, i);
     i++;
   });
 }

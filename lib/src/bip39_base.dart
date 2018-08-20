@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:pointycastle/pointycastle.dart';
 import 'package:resource/resource.dart';
+import 'package:unorm_dart/unorm_dart.dart';
 
 // https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 // https://github.com/bitcoin/bips/tree/master/bip-0039
@@ -69,6 +70,10 @@ String _bytesToBinary(Uint8List bytes) {
   return bytes.map((byte) => byte.toRadixString(2).padLeft(8, '0')).join('');
 }
 
+String _bytesToHex(Uint8List bytes) {
+  return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
+}
+
 String _salt(String password) {
   return 'mnemonic${password ?? ""}';
 }
@@ -82,10 +87,12 @@ String _deriveChecksumBits(Uint8List entropy) {
 }
 
 Uint8List mnemonicToSeed(String mnemonic, {String password = ""}) {
-  final salt = _salt(password);
-  final pbkdf2 = KeyDerivator.registry.create('SHA-512/HMAC/PBKDF2');
-  pbkdf2.init(Pbkdf2Parameters(utf8.encode(salt), 2048, 64));
-  return pbkdf2.process(utf8.encode(mnemonic));
+  final mnemonicBuffer = utf8.encode(nfkd(mnemonic));
+  final saltBuffer = utf8.encode(_salt(nfkd(password)));
+  final pbkdf2 = KeyDerivator('SHA-512/HMAC/PBKDF2');
+
+  pbkdf2.init(Pbkdf2Parameters(saltBuffer, 2048, 64));
+  return pbkdf2.process(mnemonicBuffer);
 }
 
 String mnemonicToSeedHex(String mnemonic, {String password = ""}) {
