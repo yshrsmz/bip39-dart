@@ -136,24 +136,25 @@ Future<Uint8List> mnemonicToEntropy(String mnemonic,
       .map((match) => _binaryToByte(match.group(0)))
       .toList(growable: false));
   if (entropyBytes.length < 16) {
-    throw AssertionError(_INVALID_ENTROPY);
+    throw StateError(_INVALID_ENTROPY);
   }
   if (entropyBytes.length > 32) {
-    throw AssertionError(_INVALID_ENTROPY);
+    throw StateError(_INVALID_ENTROPY);
   }
   if (entropyBytes.length % 4 != 0) {
-    throw AssertionError(_INVALID_ENTROPY);
+    throw StateError(_INVALID_ENTROPY);
   }
 
   final newCheckSum = _deriveChecksumBits(entropyBytes);
   if (newCheckSum != checksumBits) {
-    throw AssertionError(_INVALID_CHECKSUM);
+    throw StateError(_INVALID_CHECKSUM);
   }
 
   return entropyBytes;
 }
 
-Future<String> entropyToMnemonic(Uint8List entropy, Wordlist wordlist) async {
+Future<String> entropyToMnemonic(Uint8List entropy,
+    [Wordlist wordlist = _DEFAULT_WORDLIST]) async {
   if (entropy.length < 16) {
     throw ArgumentError(_INVALID_ENTROPY);
   }
@@ -194,7 +195,8 @@ Future<String> generateMnemonic({
   return await entropyToMnemonic(entropy, wordlist);
 }
 
-Future<bool> validateMnemonic(String mnemonic, Wordlist wordlist) async {
+Future<bool> validateMnemonic(String mnemonic,
+    [Wordlist wordlist = _DEFAULT_WORDLIST]) async {
   try {
     await mnemonicToEntropy(mnemonic, wordlist);
   } catch (e) {
