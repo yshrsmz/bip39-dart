@@ -1,5 +1,7 @@
 # BIP39
 
+[![Build Status](https://travis-ci.org/yshrsmz/bip39-dart.svg?branch=master)](https://travis-ci.org/yshrsmz/bip39-dart)
+
 Dart implementation of [Bitcoin BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki): Mnemonic code for generating deterministic keys
 
 ## Usage
