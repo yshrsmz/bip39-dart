@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:hex/hex.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -118,7 +119,7 @@ void testVector(String description, bip39.Wordlist wordlist, String password,
     test('mnemoic to entropy', () async {
       final Uint8List entropy =
           await bip39.mnemonicToEntropy(vmnemonic, wordlist);
-      expect(entropy, equals(convertEntropy(ventropy)));
+      expect(entropy, equals(HEX.decode(ventropy)));
     });
 
     test('mnemonic to seed hex', () async {
@@ -127,15 +128,18 @@ void testVector(String description, bip39.Wordlist wordlist, String password,
     });
 
     test('entropy to mnemonic', () async {
-      final entropy = convertEntropy(ventropy);
+      final entropy = HEX.decode(ventropy);
 
       final code = await bip39.entropyToMnemonic(entropy, wordlist);
       expect(code, equals(vmnemonic));
+
+      final code2 = await bip39.entropyHexToMnemonic(ventropy, wordlist);
+      expect(code2, equals(vmnemonic));
     });
 
     test('generate mnemonic', () async {
       bip39.RandomBytes nextBytes = (int size) {
-        return convertEntropy(ventropy);
+        return HEX.decode(ventropy);
       };
       final code = await bip39.generateMnemonic(
           randomBytes: nextBytes, wordlist: wordlist);
@@ -158,12 +162,4 @@ List<String> loadWordlist(String name) {
       .map((s) => s.trim())
       .where((s) => s.isNotEmpty)
       .toList(growable: false);
-}
-
-Uint8List convertEntropy(String entropy) {
-  final regex = new RegExp(r".{1,2}", caseSensitive: false, multiLine: false);
-  return Uint8List.fromList(regex
-      .allMatches(entropy)
-      .map((s) => int.parse(s.group(0), radix: 16))
-      .toList(growable: false));
 }

@@ -11,6 +11,7 @@ dependencies:
   crypto: ^2.0.6
   resource: ^2.1.5
   unorm_dart: ^0.1.0
+  hex: ^0.1.2
   pointycastle:
     git:
       url: git://github.com/yshrsmz/pointycastle.git

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:hex/hex.dart';
 import 'package:pointycastle/pointycastle.dart';
 import 'package:resource/resource.dart';
 import 'package:unorm_dart/unorm_dart.dart';
@@ -63,10 +64,6 @@ String _bytesToBinary(Uint8List bytes) {
   return bytes.map((byte) => byte.toRadixString(2).padLeft(8, '0')).join('');
 }
 
-String _bytesToHex(Uint8List bytes) {
-  return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
-}
-
 String _salt(String password) {
   return 'mnemonic${password ?? ""}';
 }
@@ -90,6 +87,9 @@ Uint8List _nextBytes(int size) {
   return bytes;
 }
 
+/// Converts [mnemonic] code to seed.
+///
+/// Returns Uint8List.
 Uint8List mnemonicToSeed(String mnemonic, [String password = ""]) {
   final mnemonicBuffer = utf8.encode(nfkd(mnemonic));
   final saltBuffer = utf8.encode(_salt(nfkd(password)));
@@ -99,12 +99,16 @@ Uint8List mnemonicToSeed(String mnemonic, [String password = ""]) {
   return pbkdf2.process(mnemonicBuffer);
 }
 
+/// Converts [mnemonic] code to seed, as hex string.
+///
+/// Returns hex string.
 String mnemonicToSeedHex(String mnemonic, [String password = ""]) {
   return mnemonicToSeed(mnemonic, password).map((byte) {
     return byte.toRadixString(16).padLeft(2, '0');
   }).join('');
 }
 
+/// Converts [mnemonic] code to entropy.
 Future<Uint8List> mnemonicToEntropy(String mnemonic,
     [Wordlist wordlist = _DEFAULT_WORDLIST]) async {
   final wordRes = await _loadWordlist(wordlist);
@@ -153,6 +157,7 @@ Future<Uint8List> mnemonicToEntropy(String mnemonic,
   return entropyBytes;
 }
 
+/// Converts [entropy] to mnemonic code.
 Future<String> entropyToMnemonic(Uint8List entropy,
     [Wordlist wordlist = _DEFAULT_WORDLIST]) async {
   if (entropy.length < 16) {
@@ -183,6 +188,18 @@ Future<String> entropyToMnemonic(Uint8List entropy,
       .join(wordlist == Wordlist.JAPANESE ? '\u3000' : ' ');
 }
 
+/// Converts HEX string [entropy] to mnemonic code
+Future<String> entropyHexToMnemonic(String entropy,
+    [Wordlist wordlist = _DEFAULT_WORDLIST]) {
+  return entropyToMnemonic(HEX.decode(entropy), wordlist);
+}
+
+/// Generates a random mnemonic.
+///
+/// Defaults to 128-bits of entropy.
+/// By default it uses [Random.secure()] under the food to get random bytes,
+/// but you can swap RNG by providing [randomBytes].
+/// Default wordlist is English, but you can use different wordlist by providing [wordlist].
 Future<String> generateMnemonic({
   int strength = 128,
   RandomBytes randomBytes = _nextBytes,
@@ -195,6 +212,7 @@ Future<String> generateMnemonic({
   return await entropyToMnemonic(entropy, wordlist);
 }
 
+/// Check if [mnemonic] code is valid.
 Future<bool> validateMnemonic(String mnemonic,
     [Wordlist wordlist = _DEFAULT_WORDLIST]) async {
   try {
