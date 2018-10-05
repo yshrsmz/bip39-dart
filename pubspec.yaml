@@ -5,17 +5,14 @@ homepage: https://github.com/yshrsmz/bip39-dart
 author: yshrsmz <the.phantom.bane@gmail.com>
 
 environment:
-  sdk: '>=2.0.0-dev.58.0 <3.0.0'
+  sdk: '>=2.0.0 <3.0.0'
 
 dependencies:
   crypto: ^2.0.6
   resource: ^2.1.5
   unorm_dart: ^0.1.0
   hex: ^0.1.2
-  pointycastle:
-    git:
-      url: git://github.com/yshrsmz/pointycastle.git
-      ref: registry2
+  pointycastle: ^1.0.0-rc4
 
 #  pointycastle: '^1.0.0-rc2'
 #  path: ^1.4.1
