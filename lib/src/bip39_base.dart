@@ -29,7 +29,7 @@ final _wordlistCache = Map<Wordlist, List<dynamic>>();
 const Wordlist _DEFAULT_WORDLIST = Wordlist.ENGLISH;
 
 const int _SIZE_8BITS = 255;
-const String _INVALID_ENTROPY = 'Invalid entroy';
+const String _INVALID_ENTROPY = 'Invalid entropy';
 const String _INVALID_MNEMONIC = 'Invalid mnemonic';
 const String _INVALID_CHECKSUM = 'Invalid checksum';
 
@@ -170,10 +170,10 @@ Future<String> entropyToMnemonic(Uint8List entropy,
     throw ArgumentError(_INVALID_ENTROPY);
   }
 
-  final entroypyBits = _bytesToBinary(entropy);
+  final entropyBits = _bytesToBinary(entropy);
   final checksumBits = _deriveChecksumBits(entropy);
 
-  final bits = entroypyBits + checksumBits;
+  final bits = entropyBits + checksumBits;
 
   final regex = new RegExp(r".{1,11}", caseSensitive: false, multiLine: false);
   final chunks = regex
